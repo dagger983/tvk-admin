@@ -29,6 +29,7 @@ import { RepManager } from './components/RepManager';
 import { CategoryManager } from './components/CategoryManager';
 import { AnalyticsView } from './components/AnalyticsView';
 import { NotificationsDrawer } from './components/NotificationsDrawer';
+import { LoginPage } from './components/LoginPage';
 import {
   FileText,
   Clock,
@@ -46,6 +47,9 @@ import {
 } from 'lucide-react';
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('tvk_admin_authenticated') === 'true';
+  });
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [citizens, setCitizens] = useState<CitizenProfile[]>([]);
@@ -83,8 +87,17 @@ export default function App() {
     }
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem('tvk_admin_authenticated');
+    localStorage.removeItem('tvk_admin_user');
+    localStorage.removeItem('tvk_admin_login_time');
+    setIsAuthenticated(false);
+  };
+
   // Initial load & realtime subscription
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     loadData();
 
     const unsubscribe = subscribeToComplaintsTable(() => {
@@ -95,7 +108,7 @@ export default function App() {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [loadData]);
+  }, [loadData, isAuthenticated]);
 
   // Derived Stats
   const stats = useMemo(() => {
@@ -187,6 +200,10 @@ export default function App() {
     return complaints.filter((c) => !c.assigned_admin_id && c.status === 'submitted');
   }, [complaints]);
 
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <div className="flex h-screen bg-slate-100 font-sans antialiased overflow-hidden text-slate-800">
       {/* Sidebar Navigation */}
@@ -195,6 +212,7 @@ export default function App() {
         onSelectTab={setCurrentTab}
         unassignedCount={stats.unassigned}
         urgentCount={complaints.filter((c) => c.priority === 'Urgent').length}
+        onLogout={handleLogout}
       />
 
       {/* Main Panel Content Area */}

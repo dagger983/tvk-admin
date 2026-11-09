@@ -29,12 +29,14 @@ interface SidebarProps {
   onSelectTab: (tab: NavTab) => void;
   unassignedCount: number;
   urgentCount: number;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
   onSelectTab,
   unassignedCount,
+  onLogout,
 }) => {
   const navItems = [
     { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard },
@@ -143,8 +145,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <button
             title="Admin Sign Out"
-            onClick={() => alert('Logged out of Admin Session.')}
-            className="text-slate-400 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-slate-800"
+            onClick={onLogout || (() => alert('Logged out of Admin Session.'))}
+            className="text-slate-400 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-slate-800 cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
           </button>
